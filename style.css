@@ -156,10 +156,13 @@ tbody tr:hover td{background:#fafcfa}
   /* Sidebar — hidden by default on mobile */
   .sb {
     position: fixed; top: 0; left: -100%; width: 80%; max-width: 280px;
-    height: 100vh; z-index: 500; transition: left .25s ease;
+    height: 100%; height: 100dvh; z-index: 500; transition: left .25s ease;
     overflow-y: auto;
   }
   .sb.open { left: 0; }
+  .sb-user {
+    padding-bottom: max(20px, env(safe-area-inset-bottom, 20px));
+  }
 
   /* Overlay when sidebar open */
   #sb-overlay {
