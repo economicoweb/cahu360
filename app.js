@@ -950,14 +950,57 @@ function buildCLBlock(cl) {
         }
       }
     }
-    var itemBg = on ? 'var(--g3)' : '#fff';
-    var txtStyle = on ? 'text-decoration:line-through;color:var(--t3)' : 'color:var(--t)';
+    var tipo = item.tipo || 'checkbox';
+    var val = S.checkState[cl.id+'_'+item.t];
+    var itemBg = !on ? '#fff' : (tipo==='simNao' && val==='nao') ? 'var(--r2)' : 'var(--g3)';
+    var txtStyle = (tipo==='checkbox' && on) ? 'text-decoration:line-through;color:var(--t3)' : 'color:var(--t)';
+    // Left control
+    var leftCtrl;
+    if (tipo === 'checkbox') {
+      leftCtrl = '<div class="chkbox'+(on?' on':'')+'" id="chk-'+cl.id+'-'+i+'"'
+        +(jaConcluido?' style="cursor:not-allowed;opacity:.6;flex-shrink:0;margin-top:1px">':' onclick="toggleCL(\''+cl.id+'\','+i+')" style="cursor:pointer;flex-shrink:0;margin-top:1px">')+(on?'ok':'')+'</div>';
+    } else {
+      var dotC = !on?'var(--gray3)':(tipo==='simNao'&&val==='nao')?'var(--r)':'var(--g2)';
+      leftCtrl = '<div style="width:14px;height:14px;border-radius:50%;background:'+dotC+';flex-shrink:0;margin-top:4px"></div>';
+    }
+    // Below-text controls
+    var belowHtml = '';
+    if (tipo === 'simNao') {
+      var isSim=val==='sim', isNao=val==='nao';
+      if (!jaConcluido) {
+        belowHtml = '<div style="display:flex;gap:6px;margin-top:8px" onclick="event.stopPropagation()">'
+          +'<button onclick="setSimNao(\''+cl.id+'\','+i+',\'sim\')" style="padding:5px 14px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;border:1.5px solid '+(isSim?'var(--g2)':'var(--gray3)')+';background:'+(isSim?'var(--g3)':'#fff')+';color:'+(isSim?'var(--g)':'var(--t2)')+'">✓ Sim</button>'
+          +'<button onclick="setSimNao(\''+cl.id+'\','+i+',\'nao\')" style="padding:5px 14px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;border:1.5px solid '+(isNao?'var(--r)':'var(--gray3)')+';background:'+(isNao?'var(--r2)':'#fff')+';color:'+(isNao?'var(--r)':'var(--t2)')+'">✗ Não</button>'
+          +'</div>';
+      } else {
+        var snLabel=val==='sim'?'✓ Sim':val==='nao'?'✗ Não':'—';
+        var snColor=val==='sim'?'var(--g)':val==='nao'?'var(--r)':'var(--t3)';
+        belowHtml='<div style="margin-top:6px;font-size:12px;font-weight:700;color:'+snColor+'">'+snLabel+'</div>';
+      }
+    } else if (tipo === 'nota') {
+      var notaVal=parseInt(val)||0;
+      if (!jaConcluido) {
+        belowHtml='<div style="display:flex;gap:4px;margin-top:8px" onclick="event.stopPropagation()">'
+          +[1,2,3,4,5].map(function(n){var a=n<=notaVal;return '<button onclick="setNota(\''+cl.id+'\','+i+','+n+')" style="width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;border:1.5px solid '+(a?'var(--dk2)':'var(--gray3)')+';background:'+(a?'var(--dk)':'#fff')+';color:'+(a?'#111':'var(--t3)')+'">'+n+'</button>';}).join('')
+          +'</div>';
+      } else if (notaVal) {
+        belowHtml='<div style="display:flex;gap:3px;margin-top:6px">'
+          +[1,2,3,4,5].map(function(n){return '<span style="width:24px;height:24px;display:flex;align-items:center;justify-content:center;border-radius:5px;font-size:11px;font-weight:700;background:'+(n<=notaVal?'var(--dk)':'var(--gray2)')+';color:'+(n<=notaVal?'#111':'var(--t3)')+'">'+n+'</span>';}).join('')
+          +'</div>';
+      }
+    } else if (tipo === 'texto') {
+      if (!jaConcluido) {
+        belowHtml='<textarea placeholder="Digite a resposta..." onblur="saveTextoItem(\''+cl.id+'\','+i+',this.value)" style="width:100%;margin-top:8px;padding:8px 10px;border:1.5px solid var(--gray2);border-radius:8px;font-size:12px;font-family:inherit;resize:vertical;min-height:60px;color:var(--t)">'+(val&&typeof val==='string'?val:'')+'</textarea>';
+      } else if (val) {
+        belowHtml='<div style="margin-top:6px;padding:7px 10px;background:var(--gray);border-radius:7px;font-size:12px;color:var(--t2)">'+val+'</div>';
+      }
+    }
     return '<div id="cli-' + cl.id + '-' + i + '" style="display:flex;align-items:flex-start;gap:12px;padding:13px 14px;border:1px solid var(--gray2);border-radius:10px;background:' + itemBg + '">'
-      + '<div class="chkbox' + (on ? ' on' : '') + '" id="chk-' + cl.id + '-' + i + '"'
-      + (jaConcluido ? ' style="cursor:not-allowed;opacity:.6;flex-shrink:0;margin-top:1px">' : ' onclick="toggleCL(\'' + cl.id + '\',' + i + ')" style="cursor:pointer;flex-shrink:0;margin-top:1px">') + (on ? 'ok' : '') + '</div>'
+      + leftCtrl
       + '<div style="flex:1;min-width:0">'
       + '<div style="font-size:13px;font-weight:500;line-height:1.4;' + txtStyle + '">' + item.t + '</div>'
       + (item.obs ? '<div style="font-size:11px;color:var(--t3);margin-top:3px">' + item.obs + '</div>' : '')
+      + belowHtml
       + '</div>'
       + fotoHtml
       + '</div>';
@@ -1026,6 +1069,40 @@ function toggleCL(clId, idx) {
   }
   var txtEl = itemEl ? itemEl.querySelector('[style*="font-weight:500"]') : null;
   if (txtEl) txtEl.style.cssText = on ? 'font-size:13px;font-weight:500;line-height:1.4;text-decoration:line-through;color:var(--t3)' : 'font-size:13px;font-weight:500;line-height:1.4;color:var(--t)';
+  saveCheckState();
+  updateCLProg(cl);
+  updateDash();
+}
+
+function setSimNao(clId, idx, val) {
+  if (jaEnviouHoje(clId)) return;
+  var cl = getMyCLs().find(function(c){return c.id===clId;});
+  if (!cl) return;
+  S.checkState[clId+'_'+cl.itens[idx].t] = val;
+  saveCheckState();
+  var block = document.getElementById('cl-block-'+clId);
+  if (block) block.innerHTML = buildCLBlock(cl);
+  updateCLProg(cl);
+  updateDash();
+}
+
+function setNota(clId, idx, val) {
+  if (jaEnviouHoje(clId)) return;
+  var cl = getMyCLs().find(function(c){return c.id===clId;});
+  if (!cl) return;
+  S.checkState[clId+'_'+cl.itens[idx].t] = val;
+  saveCheckState();
+  var block = document.getElementById('cl-block-'+clId);
+  if (block) block.innerHTML = buildCLBlock(cl);
+  updateCLProg(cl);
+  updateDash();
+}
+
+function saveTextoItem(clId, idx, val) {
+  if (jaEnviouHoje(clId)) return;
+  var cl = getMyCLs().find(function(c){return c.id===clId;});
+  if (!cl) return;
+  S.checkState[clId+'_'+cl.itens[idx].t] = val.trim() || false;
   saveCheckState();
   updateCLProg(cl);
   updateDash();
@@ -1482,7 +1559,9 @@ function confirmarEnviar() {
   var cl = getMyCLs().find(function(c){return c.id===clId;});
   if (!cl) return;
   var snapshot = cl.itens.map(function(item,idx){
-    return {texto:item.t, obs:item.obs||'', foto:item.foto||false, fotoAntes:S.checkState[clId+'_foto_antes_'+idx]||null, fotoDepois:S.checkState[clId+'_foto_depois_'+idx]||S.checkState[clId+'_foto_'+idx]||null, feito:!!S.checkState[clId+'_'+item.t]};
+    var val = S.checkState[clId+'_'+item.t];
+    var tipo = item.tipo || 'checkbox';
+    return {texto:item.t, obs:item.obs||'', foto:item.foto||false, tipo:tipo, resposta:tipo!=='checkbox'?(val||null):null, fotoAntes:S.checkState[clId+'_foto_antes_'+idx]||null, fotoDepois:S.checkState[clId+'_foto_depois_'+idx]||S.checkState[clId+'_foto_'+idx]||null, feito:!!val};
   });
   var feitos = snapshot.filter(function(i){return i.feito;}).length;
   var total = snapshot.length;
@@ -1527,7 +1606,7 @@ function abrirModalCL() {
   editingCLId = null;
   nclItens = [];
   document.getElementById('mcl-title').textContent = 'Novo Checklist';
-  ['ncl-nome','ncl-desc','ncl-item-txt','ncl-item-obs'].forEach(function(id){document.getElementById(id).value='';}); document.getElementById('ncl-item-foto').value='none';
+  ['ncl-nome','ncl-desc','ncl-item-txt','ncl-item-obs'].forEach(function(id){document.getElementById(id).value='';}); document.getElementById('ncl-item-foto').value='none'; var _t=document.getElementById('ncl-item-tipo'); if(_t)_t.value='checkbox';
   document.getElementById('ncl-perfil').value='operator';
   document.getElementById('ncl-setor').value='Açougue';
   document.getElementById('ncl-turno').value='Abertura';
@@ -1548,12 +1627,14 @@ function addItemNCL() {
   var txt = document.getElementById('ncl-item-txt').value.trim();
   var obs = document.getElementById('ncl-item-obs').value.trim();
   var fotoVal = document.getElementById('ncl-item-foto').value;
+  var tipo = (document.getElementById('ncl-item-tipo')||{value:'checkbox'}).value || 'checkbox';
   var foto = fotoVal !== 'none' ? fotoVal : false;
   if (!txt) return;
-  nclItens.push({t:txt, obs:obs, foto:foto});
+  nclItens.push({t:txt, obs:obs, foto:foto, tipo:tipo});
   document.getElementById('ncl-item-txt').value='';
   document.getElementById('ncl-item-obs').value='';
   document.getElementById('ncl-item-foto').value='none';
+  var tipoEl = document.getElementById('ncl-item-tipo'); if (tipoEl) tipoEl.value='checkbox';
   renderNclItens();
   document.getElementById('ncl-item-txt').focus();
 }
@@ -1572,6 +1653,7 @@ function renderNclItens() {
       +'<div style="flex:1;min-width:0">'
       +'<div style="font-size:13px;font-weight:500">'+item.t+'</div>'
       +(item.obs ? '<div style="font-size:11px;color:var(--t3);margin-top:2px">'+item.obs+'</div>' : '')
+      +(item.tipo && item.tipo!=='checkbox' ? '<div style="font-size:11px;color:var(--bl);margin-top:2px">'+({simNao:'✅ Sim/Não',nota:'⭐ Nota 1–5',texto:'📝 Texto'}[item.tipo]||'')+'</div>' : '')
       +(item.foto && item.foto!=='none' ? '<div style="font-size:11px;color:var(--g);margin-top:2px">'+(item.foto==='antes_depois'?'📷📷 Foto antes e depois':'📷 Foto depois')+'</div>' : '')
       +'</div>'
       +'<button onclick="removeItemNCL('+i+')" style="background:none;border:none;color:var(--r);cursor:pointer;font-size:16px;line-height:1;flex-shrink:0">✕</button>'
@@ -1621,7 +1703,7 @@ function editarCL(id) {
   [0,1,2,3,4,5,6].forEach(function(d){ var el=document.getElementById('dia-'+d); if(el) el.checked=dias.indexOf(d)>=0; });
   var hl = document.getElementById('ncl-hora-limite'); if(hl) hl.value=cl.horaLimite||'10:00';
   document.getElementById('mcl-err').style.display='none';
-  ['ncl-item-txt','ncl-item-obs'].forEach(function(id){document.getElementById(id).value='';}); document.getElementById('ncl-item-foto').value='none';
+  ['ncl-item-txt','ncl-item-obs'].forEach(function(id){document.getElementById(id).value='';}); document.getElementById('ncl-item-foto').value='none'; var _t2=document.getElementById('ncl-item-tipo'); if(_t2)_t2.value='checkbox';
   renderNclItens();
   document.getElementById('modal-cl').style.display='flex';
 }
@@ -1792,12 +1874,29 @@ function verDetalhe(idx) {
     } else if (item.foto && item.foto !== 'none') {
       fotoHtml = '<div style="font-size:11px;color:var(--am);margin-top:4px;padding:6px 10px;background:var(--am2);border-radius:6px">📷 Foto obrigatória não enviada</div>';
     }
-    return '<div style="padding:12px 14px;border-radius:10px;margin-bottom:8px;border:1px solid var(--gray2);background:'+(item.feito?'var(--g3)':'#fff')+'">'
+    var tipo = item.tipo || 'checkbox';
+    var respostaHtml = '';
+    if (tipo === 'simNao') {
+      var snL=item.resposta==='sim'?'✓ Sim':item.resposta==='nao'?'✗ Não':'—';
+      var snC=item.resposta==='sim'?'var(--g)':item.resposta==='nao'?'var(--r)':'var(--t3)';
+      respostaHtml='<div style="margin-top:5px;font-size:12px;font-weight:700;color:'+snC+'">Resposta: '+snL+'</div>';
+    } else if (tipo === 'nota') {
+      var nv=parseInt(item.resposta)||0;
+      respostaHtml='<div style="display:flex;align-items:center;gap:5px;margin-top:5px"><span style="font-size:11px;color:var(--t3)">Nota:</span>'
+        +[1,2,3,4,5].map(function(v){return '<span style="width:22px;height:22px;display:flex;align-items:center;justify-content:center;border-radius:5px;font-size:11px;font-weight:700;background:'+(v<=nv?'var(--dk)':'var(--gray2)')+';color:'+(v<=nv?'#111':'var(--t3)')+'">'+v+'</span>';}).join('')+'</div>';
+    } else if (tipo === 'texto' && item.resposta) {
+      respostaHtml='<div style="margin-top:5px;padding:6px 10px;background:var(--gray);border-radius:6px;font-size:12px;color:var(--t2)">'+item.resposta+'</div>';
+    }
+    var itemDoneBg = !item.feito?'#fff':(tipo==='simNao'&&item.resposta==='nao')?'var(--r2)':'var(--g3)';
+    var itemIcon = tipo==='simNao'?(item.resposta==='sim'?'✅':item.resposta==='nao'?'❌':'⬜'):(item.feito?'✅':'⬜');
+    var txtDec = tipo==='checkbox'&&item.feito?'text-decoration:line-through;color:var(--t3)':'color:var(--t)';
+    return '<div style="padding:12px 14px;border-radius:10px;margin-bottom:8px;border:1px solid var(--gray2);background:'+itemDoneBg+'">'
       +'<div style="display:flex;align-items:flex-start;gap:10px">'
-      +'<span style="font-size:18px;margin-top:1px;flex-shrink:0">'+(item.feito?'✅':'⬜')+'</span>'
+      +'<span style="font-size:18px;margin-top:1px;flex-shrink:0">'+itemIcon+'</span>'
       +'<div style="flex:1;min-width:0">'
-      +'<div style="font-size:13px;font-weight:600;'+(item.feito?'text-decoration:line-through;color:var(--t3)':'color:var(--t)')+'">'+item.texto+'</div>'
+      +'<div style="font-size:13px;font-weight:600;'+txtDec+'">'+item.texto+'</div>'
       +(item.obs ? '<div style="font-size:11px;color:var(--t3);margin-top:2px">'+item.obs+'</div>' : '')
+      +respostaHtml
       +fotoHtml
       +'</div></div></div>';
   }).join('');

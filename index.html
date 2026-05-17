@@ -745,8 +745,14 @@
       <div style="display:flex;gap:8px">
         <input id="ncl-item-txt" type="text" placeholder="Ex: Verificar temperatura da câmara fria..." style="flex:1;padding:8px 12px;border:1.5px solid var(--gray2);border-radius:8px;font-size:13px;font-family:inherit;background:#fff" onkeydown="if(event.key==='Enter')addItemNCL()"/>
       </div>
-      <div style="display:flex;gap:8px;align-items:center">
-        <input id="ncl-item-obs" type="text" placeholder="Observação / instrução extra (opcional)" style="flex:1;padding:8px 12px;border:1.5px solid var(--gray2);border-radius:8px;font-size:13px;font-family:inherit;background:#fff"/>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <input id="ncl-item-obs" type="text" placeholder="Observação / instrução extra (opcional)" style="flex:1;min-width:160px;padding:8px 12px;border:1.5px solid var(--gray2);border-radius:8px;font-size:13px;font-family:inherit;background:#fff"/>
+        <select id="ncl-item-tipo" style="padding:8px 10px;border:1.5px solid var(--gray2);border-radius:8px;font-size:13px;font-family:inherit;background:#fff">
+          <option value="checkbox">☑ Checkbox</option>
+          <option value="simNao">✅ Sim/Não</option>
+          <option value="nota">⭐ Nota 1–5</option>
+          <option value="texto">📝 Texto</option>
+        </select>
         <select id="ncl-item-foto" style="padding:8px 10px;border:1.5px solid var(--gray2);border-radius:8px;font-size:13px;font-family:inherit;background:#fff">
           <option value="none">Sem foto</option>
           <option value="depois">📷 Foto depois</option>
